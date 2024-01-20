@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  cache:
+    container_name: redis-cache
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1 --requirepass "lfjdop23oipfghdsa"
+    volumes:
+      - .docker/redis-data:/data

@@ -2,19 +2,28 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
-	"github.com/renanmsantos/go-rate-limiter/pkg"
+	"github.com/renanmoreirasan/go-rate-limiter/app/middleware"
+	"github.com/renanmoreirasan/go-rate-limiter/infra/config"
 )
-
-func requestHandle(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-}
 
 func main() {
 
-	http.HandleFunc("/", pkg.RateLimiterMiddleware(requestHandle))
+	config.LoadConfig()
+
+	mux := http.NewServeMux()
+
+	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request permitted!")
+		w.Write([]byte("Request permitted!"))
+	})
+
+	mux.Handle("/", middleware.RateLimiterMiddleware(finalHandler))
 
 	fmt.Println("Server is listening on port 8080.")
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", mux)
+	log.Fatal(err)
+
 }
