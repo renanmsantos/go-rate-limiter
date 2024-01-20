@@ -19,6 +19,9 @@ func LoadConfig() {
 		log.Fatal(err)
 	}
 
+}
+
+func LoadCache() {
 	Cache = redis.NewClient(&redis.Options{
 		Addr:     viper.GetString("REDIS_HOST"),
 		Password: viper.GetString("REDIS_PASSWORD"),

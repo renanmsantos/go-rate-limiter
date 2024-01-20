@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/renanmoreirasan/go-rate-limiter/infra/config"
+
 	"github.com/spf13/viper"
 )
 
