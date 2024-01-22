@@ -12,7 +12,7 @@ var Cache *redis.Client
 func LoadConfig() {
 	viper.SetConfigName("local")
 	viper.SetConfigType("env")
-	viper.AddConfigPath("../infra/config")
+	viper.AddConfigPath("infra/config")
 
 	err := viper.ReadInConfig()
 	if err != nil {

@@ -1,3 +1,29 @@
+# COMO EXECUTAR O PROJETO
+
+O rateLimiter desenvolvildo é uma estrutura de validação pode ser usado como middleware.
+Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
+
+
+Para subir o projeto:
+
+- Subir o RedisCache + RateLimiter 
+`docker-compose up -d --build`
+
+- Para fazer a requisição por IP:
+`curl --location 'http://localhost:8080/' --header 'X-Real-IP: 123.123.123'`
+
+- Para fazer a requisição por validação de TOKEN
+`curl --location 'http://localhost:8080/' --header 'api-key: token-abc'`
+
+- Os tokens permitidos são com as respectivas limitações:
+
+| API_TOKEN  | REQUEST_LIMIT  | REQUEST_INTERVAL(seconds) | 
+| --- | :---: | :--: |
+| "token-abc"  | 10  | 10 |
+| "token-vbb"  | 5  | 10 |
+| "token-bvb"  | 1 | 10 |
+
+- Caso não seja enviado o TOKEN nem o IP, o usuário terá uma resposta de não autorizado.
 
 # DESAFIO: GO RATE LIMITER
 

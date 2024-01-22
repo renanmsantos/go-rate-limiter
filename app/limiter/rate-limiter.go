@@ -8,46 +8,74 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/renanmoreirasan/go-rate-limiter/infra/config"
-
 	"github.com/spf13/viper"
 )
 
-type Token struct {
-	key              string
-	request_limit    int64
-	request_interval int64
+type RateLimiter struct {
+	Cache *redis.Client
 }
 
-var permittedTokens = []Token{
-	{"token-abc", 10, 10},
-	{"token-vbb", 5, 10},
-	{"token-bvb", 1, 10},
+type ClientInfo struct {
+	Key             string
+	RequestLimit    int64
+	RequestInterval int64
 }
 
-func RequestIsPermitted(w http.ResponseWriter, r *http.Request) error {
+func (rateLimiter RateLimiter) ExtractClientInfoFromRequest(r *http.Request) ClientInfo {
 
-	cache := config.Cache
-	key, request_limit, request_interval := getRequestLimitAndIntervalBasedOnRequest(r)
+	key := r.Header.Get("Api-Key")
+	if key != "" {
+		clientInfo := rateLimiter.getClientInfoFromApiKey(key)
+		if clientInfo != (ClientInfo{}) {
+			return clientInfo
+		}
+		key = ""
+	}
+	if key == "" {
+		key = r.Header.Get("X-Real-Ip")
+	}
+	if key == "" {
+		key = r.Header.Get("X-Forwarded-For")
+	}
+
+	return ClientInfo{
+		Key:             key,
+		RequestLimit:    viper.GetInt64("REQUEST_LIMIT"),
+		RequestInterval: viper.GetInt64("REQUEST_SECONDS_INTERVAL"),
+	}
+}
+
+func (rateLimiter RateLimiter) getClientInfoFromApiKey(apiKey string) ClientInfo {
+	for _, token := range permittedTokens {
+		if apiKey == token.key {
+			return ClientInfo{
+				Key:             token.key,
+				RequestLimit:    token.request_limit,
+				RequestInterval: token.request_interval,
+			}
+		}
+	}
+	return ClientInfo{}
+}
+
+func (rateLimiter RateLimiter) Check(clientInfo ClientInfo) error {
+
 	currentTime := time.Now()
-	expires_in := currentTime.Unix() / request_interval
-	keyWindow := fmt.Sprintf("%s_%d", key, expires_in)
+	expires_in := currentTime.Unix() / clientInfo.RequestInterval
+	keyWindow := fmt.Sprintf("%s_%d", clientInfo.Key, expires_in)
 
-	cache.Incr(key)
-	count, err := cache.Get(keyWindow).Int64()
+	rateLimiter.Cache.Incr(clientInfo.Key)
+	count, err := rateLimiter.Cache.Get(keyWindow).Int64()
 	if err != nil && err != redis.Nil {
 		log.Printf("Error getting key %s: %s", keyWindow, err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
 		return err
 	}
-	if count >= request_limit {
-		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte("You have reached the maximum number of requests or actions allowed within a certain time frame."))
-		log.Printf("%s has reached the limit", key)
+	if count >= clientInfo.RequestLimit {
+		log.Printf("%s has reached the limit", clientInfo.Key)
 		return errors.New("TOO_MANY_REQUESTS")
 	}
 
-	pipe := cache.TxPipeline()
+	pipe := rateLimiter.Cache.TxPipeline()
 	pipe.Incr(keyWindow)
 	expiration := time.Duration(expires_in) * time.Second
 	pipe.Expire(keyWindow, expiration)
@@ -56,38 +84,6 @@ func RequestIsPermitted(w http.ResponseWriter, r *http.Request) error {
 		log.Printf(" Error setting key %s: %s", keyWindow, err.Error())
 		return err
 	}
-	log.Printf("IP requested: %s has %d requests.", key, count+1)
+	log.Printf("IP requested: %s has %d requests.", clientInfo.Key, count+1)
 	return nil
-}
-
-func getRequestLimitAndIntervalBasedOnRequest(r *http.Request) (string, int64, int64) {
-
-	requestKey := r.Header.Get("Api-Key")
-	if requestKey != "" {
-		isValid, limit, interval := apiKeyIsValid(requestKey)
-		if isValid {
-			return requestKey, limit, interval
-		}
-		requestKey = ""
-	}
-
-	if requestKey == "" {
-		requestKey = r.Header.Get("X-Real-Ip")
-	}
-	if requestKey == "" {
-		requestKey = r.Header.Get("X-Forwarded-For")
-	}
-	if requestKey == "" {
-		requestKey = r.RemoteAddr
-	}
-	return requestKey, viper.GetInt64("REQUEST_LIMIT"), viper.GetInt64("REQUEST_SECONDS_INTERVAL")
-}
-
-func apiKeyIsValid(apiKey string) (bool, int64, int64) {
-	for _, token := range permittedTokens {
-		if apiKey == token.key {
-			return true, token.request_limit, token.request_interval
-		}
-	}
-	return false, 0, 0
 }
