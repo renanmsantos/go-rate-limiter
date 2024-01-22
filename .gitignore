@@ -1,3 +1,4 @@
 .docker
 .vscode
 */*__debug_bin*
+docs/k6/results.json

@@ -1,10 +1,13 @@
 version: '3.8'
+
 services:
   goapp:
     build: .
     container_name: ratelimiter-go
     ports:
       - 8080:8080
+    networks:
+      - ratelimiter
   cache:
     container_name: redis-cache
     image: redis:alpine
@@ -13,3 +16,19 @@ services:
     command: redis-server --save 20 1 --requirepass "lfjdop23oipfghdsa"
     volumes:
       - .docker/redis-data:/data
+    networks:
+      - ratelimiter
+  k6-test:
+    container_name: k6-test
+    image: grafana/k6
+    volumes:
+      - ./docs/k6:/scripts
+    command: run --out json=/scripts/results.json /scripts/script.js 
+    networks:
+      - ratelimiter
+    depends_on:
+      - goapp
+
+networks:
+  ratelimiter:
+    

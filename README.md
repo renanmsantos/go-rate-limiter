@@ -1,10 +1,12 @@
 # COMO EXECUTAR O PROJETO
 
+## O que faz o projeto?
+
 O rateLimiter desenvolvildo é uma estrutura de validação pode ser usado como middleware.
 Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
 
 
-Para subir o projeto:
+## Como rodar?
 
 - Subir o RedisCache + RateLimiter 
 `docker-compose up -d --build`
@@ -24,6 +26,17 @@ Para subir o projeto:
 | "token-bvb"  | 1 | 10 |
 
 - Caso não seja enviado o TOKEN nem o IP, o usuário terá uma resposta de não autorizado.
+
+## Executando tests, usando K6
+
+Para a execução de testes de carga foi utilizado o k6.
+Sua configuração está presente no docker-compose.
+
+O resultado dos testes ficará na pasta /docs/k6/results.json
+
+Caso queria executar os testes de forma manual:
+`docker-compose run k6-test`
+
 
 # DESAFIO: GO RATE LIMITER
 
