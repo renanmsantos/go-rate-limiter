@@ -8,6 +8,8 @@ services:
       - 8080:8080
     networks:
       - ratelimiter
+    environment:
+      - APP_ENV=production
   cache:
     container_name: redis-cache
     image: redis:alpine

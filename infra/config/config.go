@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
@@ -9,8 +10,14 @@ import (
 
 var Cache *redis.Client
 
-func LoadConfig() {
-	viper.SetConfigName("local")
+func LoadEnvConfigs() {
+
+	log.Println(os.Getenv("APP_ENV"))
+	if os.Getenv("APP_ENV") == "production" {
+		viper.SetConfigName("prod")
+	} else {
+		viper.SetConfigName("local")
+	}
 	viper.SetConfigType("env")
 	viper.AddConfigPath("infra/config")
 

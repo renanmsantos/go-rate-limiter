@@ -11,7 +11,7 @@ import (
 
 func main() {
 
-	config.LoadConfig()
+	config.LoadEnvConfigs()
 	config.LoadCache()
 
 	mux := http.NewServeMux()
