@@ -1,15 +1,6 @@
 version: '3.8'
 
 services:
-  goapp:
-    build: .
-    container_name: ratelimiter-go
-    ports:
-      - 8080:8080
-    networks:
-      - ratelimiter
-    environment:
-      - APP_ENV=production
   cache:
     container_name: redis-cache
     image: redis:alpine
@@ -20,6 +11,17 @@ services:
       - .docker/redis-data:/data
     networks:
       - ratelimiter
+  goapp:
+    build: .
+    container_name: ratelimiter-go
+    ports:
+      - 8080:8080
+    networks:
+      - ratelimiter
+    environment:
+      - APP_ENV=production
+    depends_on:
+      - cache
   k6-test:
     container_name: k6-test
     image: grafana/k6

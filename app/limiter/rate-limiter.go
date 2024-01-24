@@ -12,7 +12,7 @@ import (
 )
 
 type RateLimiter struct {
-	Cache *redis.Client
+	Cache CacheInterface
 }
 
 type ClientInfo struct {
@@ -65,7 +65,7 @@ func (rateLimiter RateLimiter) Check(clientInfo ClientInfo) error {
 	keyWindow := fmt.Sprintf("%s_%d", clientInfo.Key, expires_in)
 
 	rateLimiter.Cache.Incr(clientInfo.Key)
-	count, err := rateLimiter.Cache.Get(keyWindow).Int64()
+	count, err := rateLimiter.Cache.GetInt64(keyWindow)
 	if err != nil && err != redis.Nil {
 		log.Printf("Error getting key %s: %s", keyWindow, err.Error())
 		return err
@@ -75,11 +75,10 @@ func (rateLimiter RateLimiter) Check(clientInfo ClientInfo) error {
 		return errors.New("TOO_MANY_REQUESTS")
 	}
 
-	pipe := rateLimiter.Cache.TxPipeline()
-	pipe.Incr(keyWindow)
+	rateLimiter.Cache.PipelineIncr(keyWindow)
 	expiration := time.Duration(expires_in) * time.Second
-	pipe.Expire(keyWindow, expiration)
-	_, err = pipe.Exec()
+	rateLimiter.Cache.PipelineExpire(keyWindow, expiration)
+	_, err = rateLimiter.Cache.PipelineExec()
 	if err != nil {
 		log.Printf(" Error setting key %s: %s", keyWindow, err.Error())
 		return err

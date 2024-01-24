@@ -5,14 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/renanmoreirasan/go-rate-limiter/app/middleware"
-	"github.com/renanmoreirasan/go-rate-limiter/infra/config"
+	"github.com/renanmoreirasan/go-rate-limiter/infra/configs"
+	"github.com/renanmoreirasan/go-rate-limiter/infra/middleware"
 )
 
 func main() {
 
-	config.LoadEnvConfigs()
-	config.LoadCache()
+	configs.LoadEnvConfigs()
 
 	mux := http.NewServeMux()
 	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

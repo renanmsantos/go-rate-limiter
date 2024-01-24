@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/renanmoreirasan/go-rate-limiter/app/limiter"
-	"github.com/renanmoreirasan/go-rate-limiter/infra/config"
+	"github.com/renanmoreirasan/go-rate-limiter/infra/configs"
 )
 
 func RateLimiterMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		rateLimiter := limiter.RateLimiter{
-			Cache: config.Cache,
+			Cache: configs.NewCacheRedis(),
 		}
 		clientInfo := rateLimiter.ExtractClientInfoFromRequest(r)
 		if clientInfo.Key == "" {
