@@ -31,6 +31,4 @@ export default function() {
     http.get('http://ratelimiter-go:8080', paramsWithToken);
     sleep(1);
   }  
-
-  
 }
