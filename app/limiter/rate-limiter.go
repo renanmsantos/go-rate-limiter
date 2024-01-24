@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-redis/redis"
 	"github.com/spf13/viper"
 )
 
@@ -64,21 +63,19 @@ func (rateLimiter RateLimiter) Check(clientInfo ClientInfo) error {
 	expires_in := currentTime.Unix() / clientInfo.RequestInterval
 	keyWindow := fmt.Sprintf("%s_%d", clientInfo.Key, expires_in)
 
-	rateLimiter.Cache.Incr(clientInfo.Key)
-	count, err := rateLimiter.Cache.GetInt64(keyWindow)
-	if err != nil && err != redis.Nil {
-		log.Printf("Error getting key %s: %s", keyWindow, err.Error())
+	err := rateLimiter.Cache.Incr(clientInfo.Key)
+	if err != nil {
 		return err
 	}
+	count, _ := rateLimiter.Cache.GetInt64(keyWindow)
 	if count >= clientInfo.RequestLimit {
 		log.Printf("%s has reached the limit", clientInfo.Key)
 		return errors.New("TOO_MANY_REQUESTS")
 	}
 
-	rateLimiter.Cache.PipelineIncr(keyWindow)
+	rateLimiter.Cache.Incr(keyWindow)
 	expiration := time.Duration(expires_in) * time.Second
-	rateLimiter.Cache.PipelineExpire(keyWindow, expiration)
-	_, err = rateLimiter.Cache.PipelineExec()
+	err = rateLimiter.Cache.Expire(keyWindow, expiration)
 	if err != nil {
 		log.Printf(" Error setting key %s: %s", keyWindow, err.Error())
 		return err

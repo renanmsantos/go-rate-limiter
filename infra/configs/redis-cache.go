@@ -22,26 +22,14 @@ func NewCacheRedis() CacheRedis {
 	}
 }
 
-func (cache CacheRedis) Incr(key string) {
-	cache.client.Incr(key)
+func (cache CacheRedis) Incr(key string) error {
+	return cache.client.Incr(key).Err()
 }
 
 func (cache CacheRedis) GetInt64(key string) (int64, error) {
 	return cache.client.Get(key).Int64()
 }
 
-func (cache CacheRedis) TxPipeline() {
-	cache.client.TxPipeline()
-}
-
-func (cache CacheRedis) PipelineIncr(key string) {
-	cache.client.TxPipeline().Incr(key)
-}
-
-func (cache CacheRedis) PipelineExpire(keyWindow string, expiration time.Duration) error {
-	return cache.client.TxPipeline().Expire(keyWindow, expiration).Err()
-}
-
-func (cache CacheRedis) PipelineExec() (interface{}, error) {
-	return cache.client.TxPipeline().Exec()
+func (cache CacheRedis) Expire(key string, expiration time.Duration) error {
+	return cache.client.Expire(key, expiration).Err()
 }

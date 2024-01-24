@@ -25,6 +25,11 @@ func RateLimiterMiddleware(next http.Handler) http.Handler {
 			w.Write([]byte("You have reached the maximum number of requests or actions allowed within a certain time frame"))
 			return
 		}
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("INTERNAL_SERVER_ERROR"))
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }
