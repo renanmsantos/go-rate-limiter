@@ -11,8 +11,16 @@ Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
 - Subir o RedisCache + RateLimiter 
 `docker-compose up -d --build`
  
-- Executar os testes de carga no k6
-`docker-compose run k6-test`
+
+## Executar testes de carga
+
+- Para teste com IP
+`docker-compose run ip-tests`
+
+- Para teste com Token
+`docker-compose run token-tests`
+
+## Para fazer chamadas HTTP
 
 - Para fazer a requisição por IP:
 `curl --location 'http://localhost:8080/' --header 'X-Real-IP: 123.123.123'`

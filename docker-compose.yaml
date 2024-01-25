@@ -9,30 +9,26 @@ services:
     command: redis-server --save 20 1 --requirepass "lfjdop23oipfghdsa"
     volumes:
       - .docker/redis-data:/data
-    networks:
-      - ratelimiter
   goapp:
     build: .
-    container_name: ratelimiter-go
+    container_name: go-ratelimiter
     ports:
       - 8080:8080
-    networks:
-      - ratelimiter
     environment:
       - APP_ENV=production
     depends_on:
       - cache
-  k6-test:
-    container_name: k6-test
-    image: grafana/k6
-    volumes:
-      - ./docs/k6:/scripts
-    command: run --out json=/scripts/results.json /scripts/script.js 
-    networks:
-      - ratelimiter
+  ip-tests:
+    container_name: ip-tests
+    image: jordi/ab
+    command: -n 20 -v 3 -H 'X-Real-Ip:123.123.123' http://goapp:8080/ 
+    depends_on:
+      - goapp
+  token-tests:
+    container_name: token-tests
+    image: jordi/ab
+    command: -n 20 -v 3 -H 'Api-Key:token-abc' http://goapp:8080/ 
     depends_on:
       - goapp
 
-networks:
-  ratelimiter:
     

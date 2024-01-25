@@ -9,7 +9,6 @@ import (
 
 func LoadEnvConfigs() {
 
-	log.Println(os.Getenv("APP_ENV"))
 	if os.Getenv("APP_ENV") == "production" {
 		viper.SetConfigName("prod")
 	} else {

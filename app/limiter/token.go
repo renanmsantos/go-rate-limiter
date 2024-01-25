@@ -7,7 +7,7 @@ type Token struct {
 }
 
 var permittedTokens = []Token{
-	{"token-abc", 10, 10},
+	{"token-abc", 10, 1},
 	{"token-vbb", 5, 10},
 	{"token-bvb", 1, 10},
 }
