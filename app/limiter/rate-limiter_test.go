@@ -17,15 +17,16 @@ func TestShouldBeExtractClientInfoFromRequestWithToken(t *testing.T) {
 		},
 	}
 	// Act
-	clientInfo := rateLimiter.ExtractClientInfoFromRequest(mockedRequest)
+	clientInfo, _ := rateLimiter.ExtractClientInfoFromRequest(mockedRequest)
 	// Assert
 	assert.Equal(t, clientInfo.Key, "token-abc")
 	assert.Equal(t, clientInfo.RequestLimit, int64(10))
-	assert.Equal(t, clientInfo.RequestInterval, int64(10))
+	assert.Equal(t, clientInfo.RequestInterval, int64(1))
 }
 
 func TestShouldBeExtractClientInfoFromRequestWithIP(t *testing.T) {
 	// Arrange
+	viper.Set("REQUEST_LIMITER_MODE", "IP")
 	rateLimiter := RateLimiter{}
 	mockedRequest := &http.Request{
 		Header: map[string][]string{
@@ -33,7 +34,7 @@ func TestShouldBeExtractClientInfoFromRequestWithIP(t *testing.T) {
 		},
 	}
 	// Act
-	clientInfo := rateLimiter.ExtractClientInfoFromRequest(mockedRequest)
+	clientInfo, _ := rateLimiter.ExtractClientInfoFromRequest(mockedRequest)
 	// Assert
 	assert.Equal(t, clientInfo.Key, "123.123.123")
 	assert.Equal(t, clientInfo.RequestLimit, viper.GetInt64("REQUEST_LIMIT"))

@@ -5,13 +5,34 @@
 O rateLimiter desenvolvildo é uma estrutura de validação pode ser usado como middleware.
 Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
 
+## Configuração do RateLimiter
+
+O rateLimiter pode ser configurado para limitar por IP ou por API-TOKEN. Quando enviado a informação de TOKEN ela sempre vai se sobrepor a de IP.
+
+A configuração do limiter fica na pasta `/infra/configs/local.env` ou `/infra/configs/prod.env`
+
+Se pode configurar os seguintes valores:
+
+`REQUEST_LIMITER_MODE=IP` 
+
+`REQUEST_LIMITER_MODE=API-TOKEN`
+
+`REQUEST_LIMITER_MODE=` (aqui está utilizado o IP)
+ 
+## Strategy de independencia
+
+Dentro da pasta `app/limiter` foi criado uma interface que representa as operações que podem ser feitas pelo cache e que serão utilizadas pelo nosso rateLimiter.
+
+Na pasta de configs temos esse arquivo: `infra/configs/redis-cache.go` onde é a implementação do Redis para a interface do nosso rateLimiter.
+
+Essa estratégia foi adotada para permitir ao projeto não ficar acoplado a uma implementação de cache. Caso, precise trocar o cache, será somente implementar a interface criada.
+
 
 ## Como rodar?
 
 - Subir o RedisCache + RateLimiter 
 `docker-compose up -d --build`
  
-
 ## Executar testes de carga
 
 - Para teste com IP
@@ -26,9 +47,9 @@ Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
 `curl --location 'http://localhost:8080/' --header 'X-Real-IP: 123.123.123'`
 
 - Para fazer a requisição por validação de TOKEN
-`curl --location 'http://localhost:8080/' --header 'api-key: token-abc'`
+`curl --location 'http://localhost:8080/' --header 'Api-Key: token-abc'`
 
-- Os tokens permitidos são com as respectivas limitações:
+- Estes são os tokens permitidos com suas respectivas limitações:
 
 | API_TOKEN  | REQUEST_LIMIT  | REQUEST_INTERVAL(seconds) | 
 | --- | :---: | :--: |
@@ -37,16 +58,6 @@ Ele verifica se há limitações por requests segundo: IP ou por API_TOKEN.
 | "token-bvb"  | 1 | 10 |
 
 - Caso não seja enviado o TOKEN nem o IP, o usuário terá uma resposta de não autorizado.
-
-## Executando tests, usando K6
-
-Para a execução de testes de carga foi utilizado o k6.
-Sua configuração está presente no docker-compose.
-
-O resultado dos testes ficará na pasta /docs/k6/results.json
-
-Caso queria executar os testes de forma manual:
-`docker-compose run k6-test`
 
 
 # DESAFIO: GO RATE LIMITER

@@ -20,41 +20,43 @@ type ClientInfo struct {
 	RequestInterval int64
 }
 
-func (rateLimiter RateLimiter) ExtractClientInfoFromRequest(r *http.Request) ClientInfo {
-
-	key := r.Header.Get("Api-Key")
-	if key != "" {
-		clientInfo := rateLimiter.getClientInfoFromApiKey(key)
-		if clientInfo != (ClientInfo{}) {
-			return clientInfo
+func (rateLimiter RateLimiter) ExtractClientInfoFromRequest(r *http.Request) (ClientInfo, error) {
+	header := r.Header
+	if viper.GetString("REQUEST_LIMITER_MODE") == "IP" {
+		key := header.Get("X-Real-Ip")
+		if key == "" {
+			key = r.Header.Get("X-Forwarded-For")
 		}
-		key = ""
+		if key == "" {
+			key = r.RemoteAddr
+		}
+		return ClientInfo{
+			Key:             key,
+			RequestLimit:    viper.GetInt64("REQUEST_LIMIT"),
+			RequestInterval: viper.GetInt64("REQUEST_SECONDS_INTERVAL"),
+		}, nil
+	} else if viper.GetString("REQUEST_LIMITER_MODE") == "API_KEY" || viper.GetString("REQUEST_LIMITER_MODE") == "" {
+		key := header.Get("Api-Key")
+		if key == "" {
+			return ClientInfo{}, errors.New("API_KEY_NOT_FOUND")
+		}
+		clientInfo, err := rateLimiter.validateIfApiKeyIsPermitted(key)
+		return clientInfo, err
 	}
-	if key == "" {
-		key = r.Header.Get("X-Real-Ip")
-	}
-	if key == "" {
-		key = r.Header.Get("X-Forwarded-For")
-	}
-
-	return ClientInfo{
-		Key:             key,
-		RequestLimit:    viper.GetInt64("REQUEST_LIMIT"),
-		RequestInterval: viper.GetInt64("REQUEST_SECONDS_INTERVAL"),
-	}
+	return ClientInfo{}, errors.New("REQUEST_LIMITER_MODE_NOT_FOUND")
 }
 
-func (rateLimiter RateLimiter) getClientInfoFromApiKey(apiKey string) ClientInfo {
+func (rateLimiter RateLimiter) validateIfApiKeyIsPermitted(apiKey string) (ClientInfo, error) {
 	for _, token := range permittedTokens {
 		if apiKey == token.key {
 			return ClientInfo{
 				Key:             token.key,
 				RequestLimit:    token.request_limit,
 				RequestInterval: token.request_interval,
-			}
+			}, nil
 		}
 	}
-	return ClientInfo{}
+	return ClientInfo{}, errors.New("API_KEY_NOT_PERMITTED")
 }
 
 func (rateLimiter RateLimiter) Check(clientInfo ClientInfo) error {
