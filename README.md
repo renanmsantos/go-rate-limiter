@@ -15,9 +15,8 @@ Se pode configurar os seguintes valores:
 
 `REQUEST_LIMITER_MODE=IP` 
 
-`REQUEST_LIMITER_MODE=TOKEN``
+`REQUEST_LIMITER_MODE=TOKEN`
 
-`REQUEST_LIMITER_MODE=` (aqui está utilizado o IP)
  
 ## Strategy de independencia
 
