@@ -35,7 +35,7 @@ func (rateLimiter RateLimiter) ExtractClientInfoFromRequest(r *http.Request) (Cl
 			RequestLimit:    viper.GetInt64("REQUEST_LIMIT"),
 			RequestInterval: viper.GetInt64("REQUEST_SECONDS_INTERVAL"),
 		}, nil
-	} else if viper.GetString("REQUEST_LIMITER_MODE") == "API_KEY" || viper.GetString("REQUEST_LIMITER_MODE") == "" {
+	} else if viper.GetString("REQUEST_LIMITER_MODE") == "TOKEN" || viper.GetString("REQUEST_LIMITER_MODE") == "" {
 		key := header.Get("Api-Key")
 		if key == "" {
 			return ClientInfo{}, errors.New("API_KEY_NOT_FOUND")

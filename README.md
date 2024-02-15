@@ -15,7 +15,7 @@ Se pode configurar os seguintes valores:
 
 `REQUEST_LIMITER_MODE=IP` 
 
-`REQUEST_LIMITER_MODE=API-TOKEN`
+`REQUEST_LIMITER_MODE=TOKEN``
 
 `REQUEST_LIMITER_MODE=` (aqui está utilizado o IP)
  
@@ -51,7 +51,7 @@ Essa estratégia foi adotada para permitir ao projeto não ficar acoplado a uma 
 
 - Estes são os tokens permitidos com suas respectivas limitações:
 
-| API_TOKEN  | REQUEST_LIMIT  | REQUEST_INTERVAL(seconds) | 
+| TOKEN  | REQUEST_LIMIT  | REQUEST_INTERVAL(seconds) | 
 | --- | :---: | :--: |
 | "token-abc"  | 10  | 10 |
 | "token-vbb"  | 5  | 10 |
